@@ -49,80 +49,80 @@
 ## Day 2: Database Models & Serializers
 
 ### Objectives
-- Define the Player model with all required fields
+- Reverse-engineer Player model from existing MSSQL database
 - Create DRF serializers for data validation and transformation
+- Configure Django to connect to MSSQL in read-only mode
 
 ### Tasks
-1. **Create Player model** (`players/models.py`)
-   - Basic fields: rank, player_name, position, team, year, games_played, games_started
-   - Passing stats: passing_yards, passing_td, passing_int, passing_attempts, passing_completions
-   - Rushing stats: rushing_attempts, rushing_yards, rushing_td
-   - Receiving stats: receiving_receptions, receiving_yards, receiving_td
-   - Defense stats: solo_tackles, sacks, interceptions
-   - URLs: image_url, wikipedia_url
-   - Add `__str__` method and `Meta` class with ordering
+1. **Verify MSSQL connection in settings.py**
+   x Confirm `DATABASES` configuration with MSSQL credentials
+   x Ensure connection details are stored securely (environment variables)
+   x Test connection: `python manage.py dbshell`
 
-2. **Create migrations**
-   - `python manage.py makemigrations`
-   - `python manage.py migrate`
+2. **Reverse-engineer Player model from MSSQL**
+   x Run: `python manage.py inspectdb > players/models.py`
+   x This auto-generates model from existing MSSQL table schema
+   x Review and customize the generated model if needed
+   x Add `__str__` method and `Meta` class with ordering
 
-3. **Register model in admin** (`players/admin.py`)
-   - Register Player model for Django admin
-   - Customize list display for easy browsing
+3. **Configure model as read-only**
+   x Add `managed = False` to Player model's `Meta` class (prevents Django migrations)
+   x This ensures Django doesn't modify the MSSQL table structure
 
-4. **Create PlayerSerializer** (`players/serializers.py`)
-   - Use `ModelSerializer` for automatic field handling
-   - Include all model fields
-   - Add validation if needed (e.g., year range)
+4. **Register model in admin** (`players/admin.py`)
+   x Register Player model for Django admin (read-only browsing)
+   x Customize list display for easy browsing
+   x Optional: Set `readonly_fields` to prevent accidental edits
 
-5. **Load sample data** (optional for testing)
-   - Create a small fixture or Django management command to load test data
-   - Or create manually via admin interface
+5. **Create PlayerSerializer** (`players/serializers.py`)
+   x Use `ModelSerializer` for automatic field handling
+   x Include all model fields
+   x Add validation if needed (e.g., year range)
 
 ### Deliverables
-- ✅ Player model with all fields
-- ✅ Database migrations applied
+- ✅ Player model successfully reverse-engineered from MSSQL
+- ✅ Django connected to MSSQL database in read-only mode
 - ✅ Admin interface accessible and model registered
 - ✅ PlayerSerializer created and tested
 
-### Time Estimate: 2-3 hours
+### Time Estimate: 1-2 hours
 
 ---
 
 ## Day 3: REST API Endpoints (ViewSets & URLs)
 
 ### Objectives
-- Create ViewSet for Player model
-- Configure DRF router for automatic URL routing
-- Test basic API endpoints
+x Create ViewSet for Player model
+x Configure DRF router for automatic URL routing
+x Test basic API endpoints
 
 ### Tasks
 1. **Create PlayerViewSet** (`players/views.py`)
-   - Inherit from `viewsets.ModelViewSet`
-   - Set `queryset` and `serializer_class`
-   - Add filtering using `django-filter` for year, position, team
-   - Add search functionality for player name
-   - Add custom actions:
+   x Inherit from `viewsets.ModelViewSet`
+   x Set `queryset` and `serializer_class`
+   x Add filtering using `django-filter` for year, position, team
+   x Add search functionality for player name
+   x Add custom actions:
      - `@action(detail=False)` for `/positions/` endpoint
      - `@action(detail=False)` for `/teams/` endpoint
      - `@action(detail=False)` for `/count/` endpoint
      - `@action(detail=False)` for `/search/` endpoint
 
 2. **Configure URLs** (`players/urls.py`)
-   - Import `DefaultRouter` from `rest_framework.routers`
-   - Create router instance
-   - Register PlayerViewSet
-   - Include router URLs
+   x Import `DefaultRouter` from `rest_framework.routers`
+   x Create router instance
+   x Register PlayerViewSet
+   x Include router URLs
 
 3. **Update main URLs** (`mywebapp/urls.py`)
-   - Include players app URLs at `/api/` prefix
+   x Include players app URLs at `/api/` prefix
 
 4. **Test endpoints with Postman or curl**
-   - GET `/api/players/`
-   - GET `/api/players/?year=2025&position=QB`
-   - GET `/api/players/positions/`
-   - GET `/api/players/teams/`
-   - GET `/api/players/count/`
+   x GET `/api/players/`
+   x GET `/api/players/?year=2025&position=QB`
+   x GET `/api/players/positions/`
+   x GET `/api/players/teams/`
+   x GET `/api/players/count/`
 
 ### Deliverables
 - ✅ All REST endpoints working and returning correct data

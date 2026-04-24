@@ -25,7 +25,7 @@ SECRET_KEY = '4fdac813-0f23-4640-8512-26d4971ee4ec'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application references
 # https://docs.djangoproject.com/en/2.1/ref/settings/#std:setting-INSTALLED_APPS
@@ -77,12 +77,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'NFLTop100.wsgi.application'
 # Database
-# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        'ENGINE': 'mssql',
+        'NAME': 'NFL Top 100',
+        'HOST': 'DESKTOP-AB3PKMH\\SQLEXPRESS01',
+        'USER': 'mt',
+        'PASSWORD': 'nfltop100',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+        }
+    },
 }
 
 # Password validation
