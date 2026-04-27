@@ -1,4 +1,4 @@
-﻿# NFL Player Stats - Django DRF Project
+# NFL Player Stats - Django DRF Project
 ## 7-Day Implementation Plan
 
 ---
@@ -147,31 +147,37 @@ x Test basic API endpoints
    ├── index.html
    ├── css/
    │   └── style.css
-   └── js/
-       └── app.js
+   ├── js/
+   │   └── app.js
+   └── images/
+       ├── {player_name}/
+       │   ├── 2015/
+       │   ├── 2016/
+       │   └── ... (years)
+       └── ... (all players)
    ```
 
 2. **Build HTML page** (`static/index.html`)
-   - Create header with title and filter controls
-   - Add search input box
-   - Add year, position, and team filter dropdowns
-   - Add "Clear Filters" and "Reload" buttons
-   - Create player grid container with placeholder structure
-   - Add loading spinner element
-   - Add error message display
-   - Add empty state message
-   - Include favicon and metadata
+   x Create header with title and filter controls
+   x Add search input box
+   x Add year, position, and team filter dropdowns
+   x Add "Clear Filters" and "Reload" buttons
+   x Create player grid container with placeholder structure
+   x Add loading spinner element
+   x Add error message display
+   x Add empty state message
+   x Include favicon and metadata
 
 3. **Basic CSS setup** (`static/css/style.css`)
-   - Start with CSS variables for colors and spacing
-   - Create grid layout (e.g., `display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))`)
-   - Style header and filter section
-   - Create player card structure (ready for content)
-   - Add responsive breakpoints for mobile
+   x Start with CSS variables for colors and spacing
+   x Create grid layout (e.g., `display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))`)
+   x Style header and filter section
+   x Create player card structure (ready for content)
+   x Add responsive breakpoints for mobile
 
 4. **Configure Django to serve static files**
-   - Verify `STATIC_URL = '/static/'` in settings
-   - Run `python manage.py collectstatic` (for production reference)
+   x Verify `STATIC_URL = '/static/'` in settings
+   x Run `python manage.py collectstatic` (for production reference)
 
 5. **Create player card template structure**
    - Image container
@@ -393,7 +399,10 @@ x Test basic API endpoints
 ## Notes
 
 - **Database**: Data can be loaded manually via admin or with a CSV import script
-- **Images**: Store in `static/images/players/` or use external image URLs
+- **Images**: Organized in `static/images/` by player name and year
+  - Structure: `static/images/{player_name}/{year}/{image_filename}`
+  - Example: `static/images/Aaron Donald/2023/image.webp`
+  - Reference dynamically in JavaScript: `/static/images/${playerName}/${year}/${imageFilename}`
 - **Testing**: Test API with Postman before connecting frontend
 - **Development**: Run `python manage.py runserver` to start development server (while in `pipenv shell`)
 - **Frontend**: Access at `http://localhost:8000/`
