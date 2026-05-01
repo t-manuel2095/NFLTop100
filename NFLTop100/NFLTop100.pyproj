@@ -35,14 +35,34 @@
     <Compile Include="NFLTop100\settings.py" />
     <Compile Include="NFLTop100\urls.py" />
     <Compile Include="NFLTop100\wsgi.py" />
+    <Compile Include="players\admin.py" />
+    <Compile Include="players\apps.py" />
+    <Compile Include="players\migrations\__init__.py" />
+    <Compile Include="players\models.py" />
+    <Compile Include="players\serializers.py" />
+    <Compile Include="players\tests.py" />
+    <Compile Include="players\urls.py" />
+    <Compile Include="players\views.py" />
+    <Compile Include="players\__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="static\" />
     <Folder Include="NFLTop100\" />
+    <Folder Include="players\" />
+    <Folder Include="players\migrations\" />
+    <Folder Include="players\templates\" />
+    <Folder Include="players\templates\players\" />
+    <Folder Include="static\css\" />
+    <Folder Include="static\js\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Implementation.md" />
+    <Content Include="players\templates\players\index.html" />
     <Content Include="requirements.txt" />
     <Content Include="db.sqlite3" />
+    <Content Include="static\css\style.css" />
+    <Content Include="static\index.html" />
+    <Content Include="static\js\app.js" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.html">

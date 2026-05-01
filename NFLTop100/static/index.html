@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NFL Top 100 Players">
+    <title>NFL Top 100 Players</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>NFL Top 100 Players</h1>
+    </header>
+
+    <!-- Filter Controls -->
+    <div class="filters-container">
+        <!-- Search Input -->
+        <input 
+            type="text" 
+            id="search-input" 
+            class="search-input" 
+            placeholder="Search player name..."
+        >
+
+        <!-- Year Filter -->
+        <select id="year-filter" class="filter-select">
+            <option value="">All Years</option>
+        </select>
+
+        <!-- Position Filter -->
+        <select id="position-filter" class="filter-select">
+            <option value="">All Positions</option>
+        </select>
+
+        <!-- Team Filter -->
+        <select id="team-filter" class="filter-select">
+            <option value="">All Teams</option>
+        </select>
+
+        <!-- Buttons -->
+        <button id="clear-filters-btn" class="btn btn-secondary">Clear Filters</button>
+        <button id="retry-btn" class="btn btn-primary">Reload</button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <p>Loading players...</p>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error" class="error-message hidden">
+        <p id="error-text"></p>
+        <button id="retry" class="btn btn-primary">Retry</button>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state hidden">
+        <p>No players found. Try adjusting your filters.</p>
+    </div>
+
+    <!-- Player Grid Container -->
+    <div id="players-container" class="players-grid">
+        <!-- Player cards will be inserted here -->
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

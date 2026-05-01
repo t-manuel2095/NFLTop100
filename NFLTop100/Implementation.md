@@ -1,4 +1,4 @@
-# NFL Player Stats - Django DRF Project
+﻿# NFL Player Stats - Django DRF Project
 ## 7-Day Implementation Plan
 
 ---
@@ -180,11 +180,11 @@ x Test basic API endpoints
    x Run `python manage.py collectstatic` (for production reference)
 
 5. **Create player card template structure**
-   - Image container
-   - Rank badge
-   - Player name and info
-   - Position and team badges
-   - Stats grid placeholder
+   x Image container
+   x Rank badge
+   x Player name and info
+   x Position and team badges
+   x Stats grid placeholder
 
 ### Deliverables
 - ✅ HTML page displaying with proper structure
@@ -205,35 +205,35 @@ x Test basic API endpoints
 
 ### Tasks
 1. **Complete CSS styling** (`static/css/style.css`)
-   - Header styling with background and shadow
-   - Filter section with flexbox layout
-   - Input and dropdown styling
-   - Button styling (search, clear, retry)
-   - Player card styling with shadows and borders
-   - Badge styling for positions with position-specific colors
-   - Team badge styling
-   - Stats card styling with icons (use emoji or text)
-   - Loading spinner animation
-   - Error state styling
-   - Empty state styling
+   x Header styling with background and shadow
+   x Filter section with flexbox layout
+   x Input and dropdown styling
+   x Button styling (search, clear, retry)
+   x Player card styling with shadows and borders
+   x Badge styling for positions with position-specific colors
+   x Team badge styling
+   x Stats card styling with icons (use emoji or text)
+   x Loading spinner animation
+   x Error state styling
+   x Empty state styling
 
 2. **Implement position-based colors**
-   - QB: Red (#e74c3c)
-   - RB: Blue (#3498db)
-   - WR: Green (#2ecc71)
-   - TE: Orange (#f39c12)
-   - OL: Purple (#9b59b6)
-   - DL: Dark orange (#e67e22)
-   - LB: Teal (#1abc9c)
-   - CB: Dark gray (#34495e)
-   - S: Light gray (#95a5a6)
-   - K: Dark teal (#16a085)
+   x QB: Red (#e74c3c)
+   x RB: Blue (#3498db)
+   x WR: Green (#2ecc71)
+   x TE: Orange (#f39c12)
+   x OL: Purple (#9b59b6)
+   x DL: Dark orange (#e67e22)
+   x LB: Teal (#1abc9c)
+   x CB: Dark gray (#34495e)
+   x S: Light gray (#95a5a6)
+   x K: Dark teal (#16a085)
 
 3. **Add animations**
-   - Card hover effects
-   - Loading spinner
-   - Smooth transitions
-   - Image loading states
+   x Card hover effects
+   x Loading spinner
+   x Smooth transitions
+   x Image loading states
 
 4. **Test responsiveness**
    - Desktop (1200px+)
@@ -258,38 +258,38 @@ x Test basic API endpoints
 
 ### Tasks
 1. **Create PlayerService class** (`static/js/app.js`)
-   - `getAllPlayers()` - Fetch all players
-   - `searchPlayers(searchTerm)` - Search players
-   - `getPlayerByName(name)` - Get single player
-   - `getPositions()` - Get unique positions
-   - `getTeams()` - Get unique teams
-   - `getPlayerCount()` - Get total count
-   - Error handling with proper feedback
+   x `getAllPlayers()` - Fetch all players
+   x `searchPlayers(searchTerm)` - Search players
+   x `getPlayerByName(name)` - Get single player
+   x `getPositions()` - Get unique positions
+   x `getTeams()` - Get unique teams
+   x `getPlayerCount()` - Get total count
+   x Error handling with proper feedback
 
 2. **Create AppState class**
-   - Store players data
-   - Store filtered players
-   - Store filter values (year, position, team, search)
-   - Store UI state (loading, error, error message)
-   - Methods to update state
+   x Store players data
+   x Store filtered players
+   x Store filter values (year, position, team, search)
+   x Store UI state (loading, error, error message)
+   x Methods to update state
 
 3. **Implement data loading**
-   - Load all players on page load
-   - Load positions and teams for dropdowns
-   - Handle loading state
-   - Handle error state with retry
+   x Load all players on page load
+   x Load positions and teams for dropdowns
+   x Handle loading state
+   x Handle error state with retry
 
 4. **Implement filtering logic**
-   - Filter by year
-   - Filter by position
-   - Filter by team
-   - Search by player name (with debouncing)
-   - Combine multiple filters
+   x Filter by year
+   x Filter by position
+   x Filter by team
+   x Search by player name (with debouncing)
+   x Combine multiple filters
 
 5. **Test API integration**
-   - Verify data loads correctly
-   - Test filtering combinations
-   - Test error scenarios
+   x Verify data loads correctly
+   x Test filtering combinations
+   x Test error scenarios
 
 ### Deliverables
 - ✅ API calls working from JavaScript
@@ -403,7 +403,7 @@ x Test basic API endpoints
   - Structure: `static/images/{player_name}/{year}/{image_filename}`
   - Example: `static/images/Aaron Donald/2023/image.webp`
   - Reference dynamically in JavaScript: `/static/images/${playerName}/${year}/${imageFilename}`
-- **Testing**: Test API with Postman before connecting frontend
+- **Testing**: Test API with Insomnia before connecting frontend
 - **Development**: Run `python manage.py runserver` to start development server (while in `pipenv shell`)
 - **Frontend**: Access at `http://localhost:8000/`
 - **Pipenv**: Use `pipenv shell` to activate the virtual environment, `pipenv install` to add new packages, or `pipenv run python manage.py` to run commands without activating shell
