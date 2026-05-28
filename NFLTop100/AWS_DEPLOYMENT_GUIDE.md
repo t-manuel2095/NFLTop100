@@ -41,16 +41,17 @@
 **Repo layout:**
 
 ```
-NFLTop100/                    ← repo root
+NFLTop100/                    ← repo root (GitHub clone → ~/NFLTop100)
 ├── NFLTop100/                ← Django project root (manage.py here)
 │   ├── manage.py
+│   ├── requirements.txt      ← same folder as manage.py
+│   ├── requirements-local.txt
 │   ├── db.sqlite3            ← created locally, copied to EC2 (not committed to git)
 │   ├── NFLTop100/settings.py
-│   ├── static/               ← index.html, css, js, images/
+│   ├── static/
 │   └── players/
-│       └── models.py
-├── requirements.txt
-└── Pipfile
+├── Pipfile
+└── README.md
 ```
 
 On EC2, most commands run from `~/NFLTop100/NFLTop100` (the folder that contains `manage.py`).
@@ -142,9 +143,9 @@ cd NFLTop100
 pip install -r requirements-local.txt
 ```
 
-**On EC2:**
+**On EC2** (from `~/NFLTop100/NFLTop100`, same folder as `manage.py`):
 ```bash
-pip install -r ../requirements.txt
+pip install -r requirements.txt
 ```
 (Do not install `requirements-local.txt` on the server.)
 
@@ -323,11 +324,10 @@ cd NFLTop100/NFLTop100
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install -r ../requirements.txt
-pip install gunicorn
+pip install -r requirements.txt
 ```
 
-(Skip `mssql-django` / `pyodbc` on the server if production uses only SQLite.)
+(`gunicorn` is already listed in `requirements.txt`. Do not install `requirements-local.txt` on the server.)
 
 ### D5. Copy `db.sqlite3` from your PC to EC2
 
@@ -427,7 +427,7 @@ Reattach: `screen -r nfl`
 2. On EC2:
    - `cd ~/NFLTop100 && git pull origin main`
    - `cd NFLTop100 && source venv/bin/activate`
-   - `pip install -r ../requirements.txt` (if dependencies changed)
+   - `pip install -r requirements.txt` (if dependencies changed)
    - `python manage.py collectstatic --noinput`
    - Restart screen or `sudo systemctl restart nfl-top100`
 

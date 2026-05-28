@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'players',
     'rest_framework',
+    'django_filters',
     'corsheaders',
 ]
 
@@ -160,3 +161,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
 ]
+
+# JSON API only — avoids django-filter browsable API template errors on EC2
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
