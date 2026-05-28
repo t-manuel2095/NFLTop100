@@ -218,78 +218,84 @@ function getTextColor(bgColor) {
     return brightness > 128 ? '#000000' : '#FFFFFF';
 }
 
+const positionGroup = {
+    FB: 'RB',
+    HB: 'RB',
+    TE: 'WR',
+    OT: 'OL',
+    C: 'OL', 
+    G: 'OL',
+    OG: 'OL',
+    T: 'OL',
+    DE: 'DL',
+    DT: 'DL',
+    ILB: 'LB',
+    OLB: 'LB',
+    MLB: 'LB',
+    CB: 'DB',
+    S: 'DB',
+    SS: 'DB',
+    FS: 'DB',
+};
+
 function getPrimaryStats(player) {
-    const position = player.pos;
+    const position = positionGroup[player.pos] || player.pos;
     
     const stats = {
+        //Offense
         'QB': [
-            { label: 'Pass Yards', value: player.yds || 0 },
-            { label: 'TDs', value: player.td || 0 },
-            { label: 'Interceptions', value: player.passing_int || 0 },
-            { label: 'Completions', value: player.cmp || 0 }
+            { label: 'TD/INT', value: `${player.td ?? 0}/${player.passing_int ?? 0}` },
+            { label: 'Pass: Comp/Att', value: `${player.cmp ?? 0}/${player.att ?? 0}` }, 
+            { label: 'Rush: Yds/Att', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}` },
+            { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
         ],
         'RB': [
-            { label: 'Rush Yards', value: player.yds2 || 0 },
-            { label: 'Rush TDs', value: player.td2 || 0 },
-            { label: 'Receptions', value: player.rec || 0 },
-            { label: 'Games', value: player.g || 0 }
+            { label: 'Rush: Yds/Att', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}` },
+            { label: 'Receiving: Yds/Att', value: `${player.yds3 ?? 0}/${player.rec ?? 0}` },
+            { label: 'Games Started', value: player.gs || 0 },
+            { label: 'Games Played', value: player.g || 0 }
         ],
         'WR': [
-            { label: 'Receptions', value: player.rec || 0 },
-            { label: 'Rec Yards', value: player.yds3 || 0 },
+            { label: 'Receiving: Yds/Att', value: `${player.yds3 ?? 0}/${player.rec ?? 0}` },
+            { label: 'Rec Yards', value: player.rec ? ((player.yds3 ?? 0) / player.rec).toFixed(1) : '0.0' },
             { label: 'Rec TDs', value: player.td3 || 0 },
-            { label: 'Games', value: player.g || 0 }
-        ],
-        'TE': [
-            { label: 'Receptions', value: player.rec || 0 },
-            { label: 'Rec Yards', value: player.yds3 || 0 },
-            { label: 'Rec TDs', value: player.td3 || 0 },
-            { label: 'Games', value: player.g || 0 }
-        ],
-        'DL': [
-            { label: 'Sacks', value: player.sk || 0 },
-            { label: 'Solo Tackles', value: player.solo || 0 },
-            { label: 'Games', value: player.g || 0 },
-            { label: 'Games Started', value: player.gs || 0 }
-        ],
-        'LB': [
-            { label: 'Solo Tackles', value: player.solo || 0 },
-            { label: 'Sacks', value: player.sk || 0 },
-            { label: 'Games', value: player.g || 0 },
-            { label: 'Games Started', value: player.gs || 0 }
-        ],
-        'CB': [
-            { label: 'Interceptions', value: player.int2 || 0 },
-            { label: 'Solo Tackles', value: player.solo || 0 },
-            { label: 'Games', value: player.g || 0 },
-            { label: 'Games Started', value: player.gs || 0 }
-        ],
-        'S': [
-            { label: 'Solo Tackles', value: player.solo || 0 },
-            { label: 'Interceptions', value: player.int2 || 0 },
-            { label: 'Games', value: player.g || 0 },
-            { label: 'Games Started', value: player.gs || 0 }
+            { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
         ],
         'OL': [
-            { label: 'Games Started', value: player.gs || 0 },
-            { label: 'Games', value: player.g || 0 },
+            { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` },
+            { label: 'Solo Tackles', value: player.solo || 0 },
             { label: '-', value: '-' },
             { label: '-', value: '-' }
         ],
+        //Defense
+        'DL': [
+            { label: 'Sacks', value: player.sk || 0 },
+            { label: 'Solo Tackles', value: player.solo || 0 },
+            { label: 'Interceptions', value: player.int2 || 0 },
+            { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
+        ],
+        'LB': [
+            { label: 'Sacks', value: player.sk || 0 },
+            { label: 'Solo Tackles', value: player.solo || 0 },
+            { label: 'Interceptions', value: player.int2 || 0 },
+            { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
+        ],
+        'DB': [
+            { label: 'Sacks', value: player.sk || 0 },
+            { label: 'Solo Tackles', value: player.solo || 0 },
+            { label: 'Interceptions', value: player.int2 || 0 },
+            { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
+        ],
+        //Special Teams
         'K': [
             { label: 'Games', value: player.g || 0 },
             { label: 'Games Started', value: player.gs || 0 },
             { label: '-', value: '-' },
             { label: '-', value: '-' }
         ]
+        
     };
-    
-    return stats[position] || [
-        { label: 'Games', value: player.g || 0 },
-        { label: 'Solo Tackles', value: player.solo || 0 },
-        { label: 'Sacks', value: player.sk || 0 },
-        { label: 'Interceptions', value: player.int2 || 0 }
-    ];
+    return stats[position] ?? [];
 }
 
 // Helper: Check if year filter is active
