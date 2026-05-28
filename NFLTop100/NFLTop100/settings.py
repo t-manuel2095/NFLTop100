@@ -11,21 +11,31 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-import posixpath
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '4fdac813-0f23-4640-8512-26d4971ee4ec'
+SECRET_KEY = os.getenv(
+    'DJANGO_SECRET_KEY',
+    '4fdac813-0f23-4640-8512-26d4971ee4ec',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',')
+    if h.strip()
+]
 
 # Application references
 # https://docs.djangoproject.com/en/2.1/ref/settings/#std:setting-INSTALLED_APPS
@@ -78,19 +88,39 @@ TEMPLATES = [
 WSGI_APPLICATION = 'NFLTop100.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+# DATABASE_ENGINE: sqlite (EC2 production) or mssql (local dev)
 
-DATABASES = {
-    'default': {
+_database_engine = os.getenv('DATABASE_ENGINE', 'mssql').lower()
+
+if _database_engine == 'sqlite':
+    _sqlite_name = os.getenv('DATABASE_PATH', 'db.sqlite3')
+    if not os.path.isabs(_sqlite_name):
+        _sqlite_name = os.path.join(BASE_DIR, _sqlite_name)
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': _sqlite_name,
+        },
+    }
+else:
+    _default_db = {
         'ENGINE': 'mssql',
-        'NAME': 'NFL Top 100',
-        'HOST': 'DESKTOP-AB3PKMH\\SQLEXPRESS01',
-        'USER': 'mt',
-        'PASSWORD': 'nfltop100',
+        'NAME': os.getenv('DATABASE_NAME', 'NFL Top 100'),
+        'HOST': os.getenv('DATABASE_HOST', r'DESKTOP-AB3PKMH\SQLEXPRESS01'),
+        'USER': os.getenv('DATABASE_USER', 'mt'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
-        }
-    },
-}
+        },
+    }
+    _database_port = os.getenv('DATABASE_PORT', '')
+    if _database_port:
+        _default_db['PORT'] = _database_port
+
+    DATABASES = {
+        'default': _default_db,
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

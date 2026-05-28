@@ -92,11 +92,17 @@ Complete these **before** deploying to AWS. The guide describes *what* to change
 - For **MSSQL** (local dev only), keep your existing connection fields behind the `mssql` branch.
 - Load secrets from a **`.env`** file (via `python-dotenv`) so production never hardcodes passwords. Add `.env` to gitignore (already ignored for `*.sqlite3` and `.env` in many setups — confirm `.env` is not committed).
 
-**Production `.env` on EC2 (conceptual — you create the file on the server):**
-- `DATABASE_ENGINE=sqlite`
-- `DJANGO_SECRET_KEY=` (long random string, not the dev default)
-- `DEBUG=False` (or `True` only while testing; see static files note in Part D)
-- `ALLOWED_HOSTS=` your EC2 public IP (and domain later if you add one)
+**Production `.env` on EC2:** Use the committed template `NFLTop100/.env.production.example` (copy to `.env` on the server and edit):
+
+| Variable | Value |
+|----------|--------|
+| `DATABASE_ENGINE` | `sqlite` |
+| `DATABASE_PATH` | `db.sqlite3` |
+| `DJANGO_SECRET_KEY` | Long random string (not your dev key) |
+| `DEBUG` | `False` (`True` only while testing; see static files note in Part D) |
+| `ALLOWED_HOSTS` | Your EC2 public IP (add your domain later if you use one) |
+
+Generate a secret key on your PC (PowerShell): `[guid]::NewGuid().ToString() + [guid]::NewGuid().ToString()`
 
 **Local `.env` (optional):**
 - `DATABASE_ENGINE=mssql` plus your existing MSSQL variables, **or** use SQLite locally too for parity.
@@ -123,46 +129,105 @@ Complete these **before** deploying to AWS. The guide describes *what* to change
 
 ### A3. `requirements.txt`
 
-**For EC2 (SQLite only):**
-- Keep: `Django`, `djangorestframework`, `django-filter`, `django-cors-headers`, `python-dotenv`, `gunicorn`
-- **Do not need on EC2:** `mssql-django`, `pyodbc` (only install those on your PC if you still use MSSQL for export)
+Two files in the repo:
 
-**On your PC:** Keep MSSQL packages until Part B export is done.
+| File | Where to use |
+|------|----------------|
+| `requirements.txt` | **EC2** and local SQLite — Django, DRF, filters, CORS, dotenv, gunicorn |
+| `requirements-local.txt` | **Your PC only** — includes `requirements.txt` plus `mssql-django` and `pyodbc` for MSSQL dev and Part B export |
+
+**On your PC (MSSQL / before Part B is done):**
+```powershell
+cd NFLTop100
+pip install -r requirements-local.txt
+```
+
+**On EC2:**
+```bash
+pip install -r ../requirements.txt
+```
+(Do not install `requirements-local.txt` on the server.)
 
 ---
 
-### A4. `.env.example` (commit this; do not commit `.env`)
+### A4. Env templates (commit these; do not commit `.env`)
 
-Document variables for teammates/yourself:
+| File | Use |
+|------|-----|
+| `.env.example` | Local dev — copy to `.env`, set `DATABASE_ENGINE=mssql` |
+| `.env.production.example` | EC2 — copy to `.env` on the server, set `DATABASE_ENGINE=sqlite` |
 
-| Variable | Local dev (MSSQL) | EC2 (SQLite) |
-|----------|-------------------|--------------|
+| Variable | Local (`.env.example`) | EC2 (`.env.production.example`) |
+|----------|----------------------|----------------------------------|
 | `DATABASE_ENGINE` | `mssql` | `sqlite` |
 | `DJANGO_SECRET_KEY` | any dev key | strong random key |
 | `DEBUG` | `True` | `False` when stable |
-| `ALLOWED_HOSTS` | `localhost,127.0.0.1` | EC2 public IP |
+| `ALLOWED_HOSTS` | `localhost,127.0.0.1,*` | EC2 public IP |
 | `DATABASE_NAME`, `HOST`, `USER`, `PASSWORD` | MSSQL values | not used |
-| `DATABASE_PATH` | optional | `db.sqlite3` (if you use this name in settings) |
+| `DATABASE_PATH` | `db.sqlite3` | `db.sqlite3` |
+
+**First-time setup on your PC:**
+
+```powershell
+cd c:\Users\Manuel\source\repos\NFLTop100\NFLTop100
+copy .env.example .env
+```
+
+Edit `.env` and set `DATABASE_PASSWORD` (and other MSSQL values if yours differ from the example).
+
+**On EC2 (Part D):** `cp .env.production.example .env`, then set `ALLOWED_HOSTS` and `DJANGO_SECRET_KEY`.
+
+**Status:** Both template files are in the repo. Your real `.env` stays local only (gitignored).
 
 ---
 
 ### A5. `.gitignore`
 
-Confirm these are ignored (do **not** push to GitHub):
-- `db.sqlite3` / `*.sqlite3`
-- `.env`
-- `venv/`, `__pycache__/`, `staticfiles/`
+These must be ignored at the **repo root** (`.gitignore` in the project root, not inside `NFLTop100/`):
 
-You will copy `db.sqlite3` to EC2 with **SCP**, not git.
+| Pattern | Why |
+|---------|-----|
+| `db.sqlite3` / `*.sqlite3` | Production DB file — copy to EC2 with **SCP**, not git |
+| `.env` | Secrets (passwords, `DJANGO_SECRET_KEY`) |
+| `venv/`, `env/` | Local virtual environments |
+| `__pycache__/`, `*.pyc` | Python cache |
+| `staticfiles/` | Output of `collectstatic` on server/PC |
+
+**Verify on your PC (PowerShell, from repo root):**
+
+```powershell
+cd c:\Users\Manuel\source\repos\NFLTop100
+git check-ignore -v NFLTop100\.env NFLTop100\db.sqlite3
+```
+
+Each path should print a matching `.gitignore` rule. If not, fix `.gitignore` before committing.
+
+**Commit:** `players/migrations/*.py` should **not** be ignored (only `**/migrations/__pycache__/`). Migrations are needed on EC2 for SQLite.
+
+**Status:** Root `.gitignore` includes all patterns above.
 
 ---
 
 ### A6. Checklist before Part B
 
-- [ ] Settings can switch to SQLite via env (or you accept SQLite-only everywhere)
-- [ ] `Player` model has no MSSQL collations; `managed = True`
-- [ ] `.env.example` updated
-- [ ] Secrets not committed
+- [x] Settings can switch to SQLite via env (`DATABASE_ENGINE=sqlite` in `.env` or shell; `python manage.py check` passes)
+- [x] `Player` model has no MSSQL collations; `managed = True`
+- [x] `.env.example` and `.env.production.example` in repo
+- [x] Local `.env` created from `.env.example` (not committed)
+- [x] Root `.gitignore` covers `.env`, `*.sqlite3`, `venv/`, `__pycache__/`, `staticfiles/`
+- [x] Secrets not committed — `git status` does not list `.env` or `db.sqlite3`; `git ls-files` does not track them
+
+**Verify secrets (PowerShell, repo root):**
+
+```powershell
+cd c:\Users\Manuel\source\repos\NFLTop100
+git status
+git ls-files "*env*" "*sqlite*"
+```
+
+Only `NFLTop100/.env.example` and `NFLTop100/.env.production.example` should appear in `ls-files`, not `.env` or `db.sqlite3`.
+
+**Part A complete.** Commit pending changes, then start [Part B](#part-b--build-the-sqlite-database-on-your-pc).
 
 ---
 
@@ -282,16 +347,19 @@ ls -la ~/NFLTop100/NFLTop100/db.sqlite3
 
 ### D6. Create `.env` on EC2
 
+The repo includes `.env.production.example` with the correct production variables.
+
 ```bash
 cd ~/NFLTop100/NFLTop100
+cp .env.production.example .env
 nano .env
 ```
 
-Set at minimum:
-- `DATABASE_ENGINE=sqlite`
-- `DJANGO_SECRET_KEY=` (new strong key)
-- `DEBUG=True` for initial testing (switch to `False` later)
-- `ALLOWED_HOSTS=` your EC2 public IP
+Replace:
+- `YOUR_EC2_PUBLIC_IP` → your instance’s public IPv4 (same IP you use in the browser)
+- `replace-with-a-long-random-string` → a new `DJANGO_SECRET_KEY` (do not reuse your dev key)
+
+For first deploy testing only, you may set `DEBUG=True` in `.env`, then switch to `DEBUG=False` after the site works.
 
 Save: `Ctrl+X`, `Y`, `Enter`.
 

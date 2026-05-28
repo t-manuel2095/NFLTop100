@@ -1,15 +1,17 @@
 # Python & Django
 venv/
 env/
-*.sqlite3
-db.sqlite3
-.env
-.env.local
 __pycache__/
 *.pyc
 *.egg-info/
 build/
 dist/
+
+# Secrets and local database (see AWS_DEPLOYMENT_GUIDE.md Part A5)
+.env
+.env.local
+*.sqlite3
+db.sqlite3
 
 # IDE
 .vscode/
@@ -25,4 +27,4 @@ Thumbs.db
 # Django
 /media
 staticfiles/
-migrations/
+**/migrations/__pycache__/

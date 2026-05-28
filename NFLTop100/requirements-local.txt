@@ -1,0 +1,5 @@
+# Local Windows only — MSSQL dev and Part B export
+# Install from NFLTop100 folder: pip install -r requirements-local.txt
+-r requirements.txt
+mssql-django>=1.0
+pyodbc>=4.0

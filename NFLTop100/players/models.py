@@ -3,9 +3,9 @@
 
 class Player(models.Model):
     rank = models.IntegerField(db_column='Rank')
-    pos = models.CharField(db_column='Pos', max_length=50, db_collation='SQL_Latin1_General_CP1_CI_AS')
-    player = models.CharField(db_column='Player', max_length=50, db_collation='SQL_Latin1_General_CP1_CI_AS')
-    tm = models.CharField(db_column='Tm', max_length=50, db_collation='SQL_Latin1_General_CP1_CI_AS', blank=True, null=True)
+    pos = models.CharField(db_column='Pos', max_length=50)
+    player = models.CharField(db_column='Player', max_length=50)
+    tm = models.CharField(db_column='Tm', max_length=50, blank=True, null=True)
     g = models.IntegerField(db_column='G', blank=True, null=True)
     gs = models.IntegerField(db_column='GS', blank=True, null=True)
     cmp = models.IntegerField(db_column='Cmp', blank=True, null=True)
@@ -26,7 +26,7 @@ class Player(models.Model):
     id = models.AutoField(db_column='Id', primary_key=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'User'
 
     def __str__(self):

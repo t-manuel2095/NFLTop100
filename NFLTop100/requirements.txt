@@ -1,7 +1,7 @@
+# EC2 production and local SQLite (after Part B)
 Django>=3.2.14
 djangorestframework>=3.13.0
 django-filter>=21.1
 django-cors-headers>=3.10.0
 python-dotenv>=1.0.0
-mssql-django>=1.0
-pyodbc>=4.0
+gunicorn>=21.0.0
