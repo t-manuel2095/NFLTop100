@@ -153,7 +153,9 @@ class AppState {
     applyFilters() {
         let results = this.allPlayers;
         const searchActive = Boolean(this.filters.search && this.filters.search.trim());
-        const applyYearFilter = this.filters.year && !(useDefaultYearView && searchActive);
+        const positionActive = Boolean(this.filters.position);
+        const teamActive = Boolean(this.filters.team);
+        const applyYearFilter = this.filters.year && !(useDefaultYearView && (searchActive || positionActive || teamActive));
         
         if (applyYearFilter) {
             results = results.filter(p => p.year === parseInt(this.filters.year, 10));
@@ -168,14 +170,14 @@ class AppState {
             results = results.map(p => this.mergePlayerWithPriorYear(p));
         }
         
-        if (this.filters.position) {
+        if (positionActive) {
             results = results.filter(p => playerMatchesPositionFilter(p, this.filters.position));
         }
-        if (this.filters.team) {
+        if (teamActive) {
             results = results.filter(p => p.tm === this.filters.team);
         }
         
-        if (searchActive) {
+        if (searchActive || positionActive || teamActive) {
             results.sort((a, b) => a.year - b.year || a.rank - b.rank);
         } else if (this.filters.year) {
             results.sort((a, b) => a.rank - b.rank);
@@ -360,7 +362,31 @@ function playerMatchesPositionFilter(player, filterPos) {
     return matches.includes(player.pos);
 }
 
+// Hardcoded kicker stats (not in DB)
+const kickerHardcodedStats = {
+    'Justin Tucker|2022': [
+        { label: 'FG: M/A/%', value: '35/37/94.6' },
+        { label: 'PAT: M/A/%', value: '32/32/100' },
+        { label: 'Long', value: '66 yds' },
+        { label: 'Points', value: '137' },
+    ],
+    'Adam Vinatieri|2015': [
+        { label: 'FG: M/A/%', value: '30/31/96.8' },
+        { label: 'PAT: M/A/%', value: '50/50/100' },
+        { label: 'Long', value: '53 yds' },
+        { label: 'Points', value: '140' },
+    ],
+};
+
+function getHardcodedKickerStats(player) {
+    const key = `${player.player}|${player.year}`;
+    return kickerHardcodedStats[key] || null;
+}
+
 function getPrimaryStats(player) {
+    const hardcodedKicker = getHardcodedKickerStats(player);
+    if (hardcodedKicker) return hardcodedKicker;
+
     const position = positionGroup[player.pos] || player.pos;
     
     const stats = {
