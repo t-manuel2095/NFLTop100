@@ -6,7 +6,7 @@
     <meta name="description" content="NFL Top 100 Players">
     <title>NFL Top 100 Players</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="stylesheet" href="/static/css/style.css?v=5">
+    <link rel="stylesheet" href="/static/css/style.css?v=10">
 </head>
 <body>
     <p class="site-credit">Created by Manuel Torres</p>
@@ -41,6 +41,19 @@
             <option value="">All Teams</option>
         </select>
 
+        <!-- Rank Filter -->
+        <div class="rank-filter-group">
+            <input
+                type="number"
+                id="rank-filter-input"
+                class="filter-select rank-filter-input"
+                min="1"
+                max="100"
+                placeholder="Rank (1-100)"
+            >
+            <span id="rank-filter-error" class="rank-filter-error" aria-live="polite"></span>
+        </div>
+
         <!-- Buttons -->
         <button id="clear-filters-btn" class="btn btn-secondary">Clear Filters</button>
         <a href="/about/" class="btn btn-secondary">About</a>
@@ -68,6 +81,6 @@
         <!-- Player cards will be inserted here -->
     </div>
 
-    <script src="/static/js/app.js?v=24"></script>
+    <script src="/static/js/app.js?v=28"></script>
 </body>
 </html>

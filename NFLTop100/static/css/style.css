@@ -98,7 +98,15 @@ html {
     font-size: 14px;
     font-family: inherit;
     min-width: 150px;
+    height: 38px;
+    line-height: normal;
     transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.filters-container > .filter-select,
+.filters-container .rank-filter-input {
+    width: 165px;
+    flex: 0 0 auto;
 }
 
 .search-input {
@@ -118,6 +126,41 @@ html {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
     }
+
+.rank-filter-group {
+    display: flex;
+    align-items: center;
+    width: 165px;
+    flex: 0 0 auto;
+    align-self: center;
+    position: relative;
+}
+
+.rank-filter-input {
+    width: 100%;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.rank-filter-input::-webkit-outer-spin-button,
+.rank-filter-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.rank-filter-input.input-invalid {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 3px rgba(211, 59, 39, 0.15);
+}
+
+.rank-filter-error {
+    position: absolute;
+    top: calc(100% + var(--spacing-xs));
+    left: 0;
+    font-size: 12px;
+    color: var(--danger-color);
+    white-space: nowrap;
+}
 
 /* Buttons */
 .btn {
@@ -195,7 +238,7 @@ a.btn {
 }
 
 .player-rank {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: white;
     background-color: var(--primary-color);
@@ -411,7 +454,10 @@ a.btn {
     }
 
     .search-input,
-    .filter-select {
+    .filter-select,
+    .filters-container > .filter-select,
+    .filters-container .rank-filter-input,
+    .rank-filter-group {
         width: 100%;
         min-width: unset;
     }

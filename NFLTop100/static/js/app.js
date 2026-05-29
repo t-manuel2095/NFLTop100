@@ -75,7 +75,8 @@ class AppState {
             year: null,
             position: null,
             team: null,
-            search: ''
+            search: '',
+            rank: null,
         };
         
         this.ui = {
@@ -122,7 +123,8 @@ class AppState {
             this.filters.year ||
             (this.filters.search && this.filters.search.trim()) ||
             this.filters.position ||
-            this.filters.team
+            this.filters.team ||
+            this.filters.rank !== null
         );
     }
 
@@ -155,7 +157,8 @@ class AppState {
         const searchActive = Boolean(this.filters.search && this.filters.search.trim());
         const positionActive = Boolean(this.filters.position);
         const teamActive = Boolean(this.filters.team);
-        const applyYearFilter = this.filters.year && !(useDefaultYearView && (searchActive || positionActive || teamActive));
+        const rankActive = this.filters.rank !== null && this.filters.rank !== '';
+        const applyYearFilter = this.filters.year && !(useDefaultYearView && (searchActive || positionActive || teamActive || rankActive));
         
         if (applyYearFilter) {
             results = results.filter(p => p.year === parseInt(this.filters.year, 10));
@@ -176,8 +179,11 @@ class AppState {
         if (teamActive) {
             results = results.filter(p => p.tm === this.filters.team);
         }
+        if (rankActive) {
+            results = results.filter(p => p.rank === parseInt(this.filters.rank, 10));
+        }
         
-        if (searchActive || positionActive || teamActive) {
+        if (searchActive || positionActive || teamActive || rankActive) {
             results.sort((a, b) => a.year - b.year || a.rank - b.rank);
         } else if (this.filters.year) {
             results.sort((a, b) => a.rank - b.rank);
@@ -187,7 +193,7 @@ class AppState {
     }
 
     clearFilters() {
-        this.filters = { year: null, position: null, team: null, search: '' };
+        this.filters = { year: null, position: null, team: null, search: '', rank: null };
         this.applyFilters();
     }
 }
@@ -392,14 +398,14 @@ function getPrimaryStats(player) {
     const stats = {
         //Offense
         'QB': [
-            { label: 'TD/INT/Yds', value: `${player.td ?? 0}/${player.passing_int ?? 0}/${player.yds ?? 0}` },
-            { label: 'Pass: Comp/Att/%', value: `${player.cmp ?? 0}/${player.att ?? 0}/${(player.cmp / player.att * 100).toFixed(1)}%` }, 
+            { label: 'TD/INT/Yds', value: `${Number(player.td) || 0}/${Number(player.passing_int) || 0}/${Number(player.yds) || 0}` },
+            { label: 'Pass: Comp/Att/%', value: `${player.cmp ?? 0}/${player.att ?? 0}/${player.att ? ((player.cmp ?? 0) / player.att * 100).toFixed(1) : '0.0'}%` },
             { label: 'Rush: Yds/Att', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}` },
             { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
         ],
         'RB': [
-            { label: 'Rush: Yds/Att/YPC', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}/${(player.yds2 / player.att2 ).toFixed(1)}` },
-            { label: 'Receiving: Yds/Att/YPR', value: `${player.yds3 ?? 0}/${player.rec ?? 0}/${(player.yds3 / player.rec ).toFixed(1)}` },
+            { label: 'Rush: Yds/Att/YPC', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}/${player.att2 ? ((player.yds2 ?? 0) / player.att2).toFixed(1) : '0.0'}` },
+            { label: 'Receiving: Yds/Att/YPR', value: `${player.yds3 ?? 0}/${player.rec ?? 0}/${player.rec ? ((player.yds3 ?? 0) / player.rec).toFixed(1) : '0.0'}` },
             { label: 'Games Started', value: player.gs || 0 },
             { label: 'Games Played', value: player.g || 0 }
         ],
@@ -520,11 +526,16 @@ function isTeamFilterActive() {
     return Boolean(appState.filters.team);
 }
 
+function isRankFilterActive() {
+    return appState.filters.rank !== null && appState.filters.rank !== '';
+}
+
 // Hide year on cards when only the year filter is set (redundant), or for the default year
 function shouldShowYearOnCard(player) {
     if (isSearchActive()) return true;
     if (isPositionFilterActive()) return true;
     if (isTeamFilterActive()) return true;
+    if (isRankFilterActive()) return true;
     if (isYearFilterActive()) return false;
     if (defaultYear !== null && parseInt(player.year, 10) === defaultYear) return false;
     return true;
@@ -791,6 +802,40 @@ function handleSearch(searchTerm) {
     renderPlayers();
 }
 
+function isValidRank(value) {
+    const rank = parseInt(value, 10);
+    return !isNaN(rank) && rank >= 1 && rank <= 100;
+}
+
+function setRankFilterError(message) {
+    const errorEl = document.getElementById('rank-filter-error');
+    const input = document.getElementById('rank-filter-input');
+    if (errorEl) errorEl.textContent = message;
+    if (input) input.classList.toggle('input-invalid', Boolean(message));
+}
+
+function handleRankFilterSubmit() {
+    const input = document.getElementById('rank-filter-input');
+    if (!input) return;
+
+    const raw = input.value.trim();
+    if (!raw) {
+        setRankFilterError('');
+        appState.updateFilter('rank', null);
+        renderPlayers();
+        return;
+    }
+
+    if (!isValidRank(raw)) {
+        setRankFilterError('Enter a rank between 1 and 100.');
+        return;
+    }
+
+    setRankFilterError('');
+    appState.updateFilter('rank', parseInt(raw, 10));
+    renderPlayers();
+}
+
 // Debounced search handler
 const debouncedSearch = debounce(handleSearch, 300);
 
@@ -799,14 +844,18 @@ function clearAllFilters() {
     appState.filters.position = null;
     appState.filters.team = null;
     appState.filters.search = '';
+    appState.filters.rank = null;
 
     const positionSelect = document.getElementById('position-filter');
     const teamSelect = document.getElementById('team-filter');
     const searchInput = document.getElementById('search-input');
+    const rankInput = document.getElementById('rank-filter-input');
 
     if (positionSelect) positionSelect.value = '';
     if (teamSelect) teamSelect.value = '';
     if (searchInput) searchInput.value = '';
+    if (rankInput) rankInput.value = '';
+    setRankFilterError('');
 
     applyDefaultYearView();
     renderPlayers();
@@ -858,6 +907,18 @@ function setupEventListeners() {
         searchInput.addEventListener('input', (e) => {
             debouncedSearch(e.target.value);
         });
+    }
+
+    // Rank filter — apply on Enter or when leaving the field
+    const rankInput = document.getElementById('rank-filter-input');
+    if (rankInput) {
+        rankInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleRankFilterSubmit();
+            }
+        });
+        rankInput.addEventListener('blur', handleRankFilterSubmit);
     }
 
     // Clear filters button
