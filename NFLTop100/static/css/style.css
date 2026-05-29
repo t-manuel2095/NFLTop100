@@ -60,6 +60,23 @@ html {
         font-weight: 600;
     }
 
+/* Site credit — fixed top-right, main page only (index.html) */
+.site-credit {
+    position: fixed;
+    top: var(--spacing-md);
+    right: var(--spacing-lg);
+    z-index: 100;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(0, 0, 0, 0.35);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+}
+
 /* Filters Container */
 .filters-container {
     display: flex;
@@ -113,6 +130,12 @@ html {
     transition: all 0.3s ease;
 }
 
+a.btn {
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
@@ -163,7 +186,8 @@ html {
     width: 100%;
     height: 200px;
     background-color: #333333;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: top center;
 }
 
 .player-card-content {
@@ -343,6 +367,27 @@ html {
     display: none !important;
 }
 
+/* About Page */
+.about-container {
+    max-width: 720px;
+    margin: 0 auto var(--spacing-xl);
+    padding: 0 var(--spacing-lg);
+}
+
+.about-content {
+    background-color: var(--bg-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-xl);
+}
+
+.about-content p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--dark-text);
+    margin-bottom: var(--spacing-lg);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .header h1 {
@@ -377,6 +422,12 @@ html {
 }
 
 @media (max-width: 480px) {
+    .site-credit {
+        font-size: 11px;
+        top: var(--spacing-sm);
+        right: var(--spacing-md);
+    }
+
     .header {
         padding: var(--spacing-md);
     }
