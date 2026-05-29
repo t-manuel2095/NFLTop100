@@ -86,10 +86,49 @@ class AppState {
         
         this.positions = [];
         this.teams = [];
+        this.playerLookup = new Map();
+    }
+
+    buildPlayerLookup() {
+        this.playerLookup = new Map();
+        for (const p of this.allPlayers) {
+            this.playerLookup.set(`${p.player}|${p.year}`, p);
+        }
+    }
+
+    getStatsYear(filterYear) {
+        const year = parseInt(filterYear, 10);
+        return isNaN(year) ? filterYear : year - 1;
+    }
+
+    mergeRankWithStatsYear(rankPlayer, statsYear) {
+        const statsPlayer = this.playerLookup.get(`${rankPlayer.player}|${statsYear}`);
+        if (!statsPlayer) {
+            return { ...rankPlayer };
+        }
+        return {
+            ...statsPlayer,
+            rank: rankPlayer.rank,
+            year: rankPlayer.year,
+        };
+    }
+
+    mergePlayerWithPriorYear(player) {
+        return this.mergeRankWithStatsYear(player, this.getStatsYear(player.year));
+    }
+
+    shouldApplyYearMerge() {
+        return Boolean(
+            this.filters.year ||
+            (this.filters.search && this.filters.search.trim()) ||
+            this.filters.position ||
+            this.filters.team
+        );
     }
 
     setAllPlayers(players) {
         this.allPlayers = players;
+        this.buildPlayerLookup();
         this.applyFilters();
     }
 
@@ -113,20 +152,33 @@ class AppState {
 
     applyFilters() {
         let results = this.allPlayers;
+        const searchActive = Boolean(this.filters.search && this.filters.search.trim());
+        const applyYearFilter = this.filters.year && !(useDefaultYearView && searchActive);
         
-        if (this.filters.year) {
-            results = results.filter(p => p.year === parseInt(this.filters.year));
+        if (applyYearFilter) {
+            results = results.filter(p => p.year === parseInt(this.filters.year, 10));
         }
+        if (searchActive) {
+            results = results.filter(p => 
+                p.player.toLowerCase().includes(this.filters.search.toLowerCase())
+            );
+        }
+        
+        if (this.shouldApplyYearMerge()) {
+            results = results.map(p => this.mergePlayerWithPriorYear(p));
+        }
+        
         if (this.filters.position) {
-            results = results.filter(p => p.pos === this.filters.position);
+            results = results.filter(p => playerMatchesPositionFilter(p, this.filters.position));
         }
         if (this.filters.team) {
             results = results.filter(p => p.tm === this.filters.team);
         }
-        if (this.filters.search) {
-            results = results.filter(p => 
-                p.player.toLowerCase().includes(this.filters.search.toLowerCase())
-            );
+        
+        if (searchActive) {
+            results.sort((a, b) => a.year - b.year || a.rank - b.rank);
+        } else if (this.filters.year) {
+            results.sort((a, b) => a.rank - b.rank);
         }
         
         this.filteredPlayers = results;
@@ -202,6 +254,48 @@ const teamColors = {
     'WAS': '#5A1930'   // Washington Commanders - Burgundy
 };
 
+const teamNames = {
+    'ARI': 'Cardinals',
+    'ATL': 'Falcons',
+    'BAL': 'Ravens',
+    'BUF': 'Bills',
+    'CAR': 'Panthers',
+    'CHI': 'Bears',
+    'CIN': 'Bengals',
+    'CLE': 'Browns',
+    'DAL': 'Cowboys',
+    'DEN': 'Broncos',
+    'DET': 'Lions',
+    'GNB': 'Packers',
+    'HOU': 'Texans',
+    'IND': 'Colts',
+    'JAX': 'Jaguars',
+    'KAN': 'Chiefs',
+    'LAC': 'Chargers',
+    'LAR': 'Rams',
+    'LVR': 'Raiders',
+    'MIA': 'Dolphins',
+    'MIN': 'Vikings',
+    'NOR': 'Saints',
+    'NWE': 'Patriots',
+    'NYG': 'Giants',
+    'NYJ': 'Jets',
+    'OAK': 'Raiders',
+    'PHI': 'Eagles',
+    'PIT': 'Steelers',
+    'SDG': 'Chargers',
+    'SEA': 'Seahawks',
+    'SFO': '49ers',
+    'STL': 'Rams',
+    'TAM': 'Buccaneers',
+    'TEN': 'Titans',
+    'WAS': 'Commanders',
+};
+
+function getTeamDisplayName(abbr) {
+    return teamNames[abbr] || abbr;
+}
+
 function getTeamColor(teamAbbr) {
     if (!teamAbbr || teamAbbr === null || teamAbbr === '') {
         return '#FFFFFF';
@@ -238,13 +332,41 @@ const positionGroup = {
     FS: 'DB',
 };
 
+const filterPositions = [
+    'QB', 'RB', 'FB', 'WR', 'TE', 'OL',
+    'DL', 'MLB', 'CB', 'FS', 'S', 'K', 'P',
+];
+
+// Filter dropdown value → DB position codes
+const positionFilterMap = {
+    QB: ['QB'],
+    RB: ['RB', 'HB'],
+    FB: ['FB'],
+    WR: ['WR'],
+    TE: ['TE'],
+    OL: ['OL', 'OT', 'C', 'G', 'OG', 'T'],
+    DL: ['DL', 'DE', 'DT'],
+    MLB: ['MLB', 'ILB', 'OLB', 'LB'],
+    CB: ['CB'],
+    FS: ['FS'],
+    S: ['S', 'SS'],
+    K: ['K'],
+    P: ['P'],
+};
+
+function playerMatchesPositionFilter(player, filterPos) {
+    const matches = positionFilterMap[filterPos];
+    if (!matches) return player.pos === filterPos;
+    return matches.includes(player.pos);
+}
+
 function getPrimaryStats(player) {
     const position = positionGroup[player.pos] || player.pos;
     
     const stats = {
         //Offense
         'QB': [
-            { label: 'TD/INT', value: `${player.td ?? 0}/${player.passing_int ?? 0}` },
+            { label: 'TD/INT/Yds', value: `${player.td ?? 0}/${player.passing_int ?? 0}/${player.yds ?? 0}` },
             { label: 'Pass: Comp/Att', value: `${player.cmp ?? 0}/${player.att ?? 0}` }, 
             { label: 'Rush: Yds/Att', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}` },
             { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
@@ -298,9 +420,88 @@ function getPrimaryStats(player) {
     return stats[position] ?? [];
 }
 
+// Default year set on app load (most recent year in data)
+let defaultYear = null;
+let useDefaultYearView = true;
+
+function applyDefaultYearView() {
+    useDefaultYearView = true;
+    if (defaultYear !== null) {
+        appState.filters.year = defaultYear;
+        appState.applyFilters();
+    }
+    const yearSelect = document.getElementById('year-filter');
+    if (yearSelect) yearSelect.value = '';
+}
+
+// NFL MVP by award year; card year Y → MVP from award year Y - 1 (matches stats shift)
+const mvpByAwardYear = {
+    2024: 'Josh Allen',
+    2023: 'Lamar Jackson',
+    2022: 'Patrick Mahomes',
+    2021: 'Aaron Rodgers',
+    2020: 'Aaron Rodgers',
+    2019: 'Lamar Jackson',
+    2018: 'Patrick Mahomes',
+    2017: 'Tom Brady',
+    2016: 'Matt Ryan',
+    2015: 'Cam Newton',
+    2014: 'Aaron Rodgers',
+    2013: 'Peyton Manning',
+    2012: 'Adrian Peterson',
+    2011: 'Aaron Rodgers',
+    2010: 'Tom Brady',
+};
+
+function getMvpForCardYear(cardYear) {
+    const awardYear = parseInt(cardYear, 10) - 1;
+    return mvpByAwardYear[awardYear] || null;
+}
+
+function isPlayerMvpForYear(player) {
+    const mvp = getMvpForCardYear(player.year);
+    return Boolean(mvp && player.player === mvp);
+}
+
+function getYearBadgeHtml(player) {
+    const showYear = shouldShowYearOnCard(player);
+    const isMvp = isPlayerMvpForYear(player);
+    const parts = [];
+
+    if (showYear) {
+        parts.push(`<span class="badge year-badge">${player.year}</span>`);
+    }
+    if (isMvp) {
+        parts.push(`<span class="badge mvp-badge">MVP 🏆</span>`);
+    }
+    return parts.join('');
+}
+
 // Helper: Check if year filter is active
 function isYearFilterActive() {
     return appState.filters.year !== null && appState.filters.year !== '';
+}
+
+function isSearchActive() {
+    return Boolean(appState.filters.search && appState.filters.search.trim());
+}
+
+function isPositionFilterActive() {
+    return Boolean(appState.filters.position);
+}
+
+function isTeamFilterActive() {
+    return Boolean(appState.filters.team);
+}
+
+// Hide year on cards when only the year filter is set (redundant), or for the default year
+function shouldShowYearOnCard(player) {
+    if (isSearchActive()) return true;
+    if (isPositionFilterActive()) return true;
+    if (isTeamFilterActive()) return true;
+    if (isYearFilterActive()) return false;
+    if (defaultYear !== null && parseInt(player.year, 10) === defaultYear) return false;
+    return true;
 }
 
 // Helper: Get display name (playerName or fallback to player)
@@ -319,20 +520,12 @@ function getWikipediaLink(player) {
     return `<a href="https://en.wikipedia.org/wiki/${playerName}" target="_blank" class="wiki-link" title="View on Wikipedia">📖</a>`;
 }
 
-// Helper: Get year label for display
-function getYearLabel(player) {
-    if (isYearFilterActive()) {
-        return `<div class="year-label">Year: ${player.year || 'Unknown'}</div>`;
-    }
-    return '';
-}
-
 function createPlayerCard(player) {
     const primaryStats = getPrimaryStats(player);
     const badgeColor = getPositionBadgeColor(player.pos);
     const displayName = getPlayerDisplayName(player);
     const wikiLink = getWikipediaLink(player);
-    const yearLabel = getYearLabel(player);
+    const yearBadge = getYearBadgeHtml(player);
     const teamColor = getTeamColor(player.tm);
     const textColor = getTextColor(teamColor);
     
@@ -356,11 +549,10 @@ function createPlayerCard(player) {
                 <div class="player-name-container">
                     <h2 class="player-name">${displayName} ${wikiLink}</h2>
                 </div>
-                ${yearLabel}
                 <div class="player-badges">
                     <span class="badge pos-${player.pos}" style="background-color: ${badgeColor};">${player.pos}</span>
                     <span class="badge team-badge">${player.tm || 'Free agent'}</span>
-                    <span class="badge year-badge">${player.year}</span>
+                    ${yearBadge}
                 </div>
                 <div class="player-stats">
                     ${statsHtml}
@@ -435,16 +627,13 @@ function renderEmptyState() {
     `;
 }
 
-function renderPositionDropdown(positions) {
+function renderPositionDropdown() {
     const select = document.getElementById('position-filter');
     if (!select) return;
     
     select.innerHTML = '<option value="">All Positions</option>';
     
-    // Sort positions alphabetically
-    const sortedPositions = [...positions].sort();
-    
-    sortedPositions.forEach(pos => {
+    filterPositions.forEach(pos => {
         const option = document.createElement('option');
         option.value = pos;
         option.textContent = pos;
@@ -475,10 +664,15 @@ function renderTeamDropdown(teams) {
     
     select.innerHTML = '<option value="">All Teams</option>';
     
-    teams.forEach(team => {
+    const sortedTeams = [...teams]
+        .filter(team => team)
+        .map(abbr => ({ abbr, name: getTeamDisplayName(abbr) }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    
+    sortedTeams.forEach(({ abbr, name }) => {
         const option = document.createElement('option');
-        option.value = team;
-        option.textContent = team;
+        option.value = abbr;
+        option.textContent = name;
         select.appendChild(option);
     });
 }
@@ -514,25 +708,16 @@ async function initializeApp() {
         // Render year dropdown with actual data years
         renderYearDropdown(uniqueYears);
 
-        // Load positions for dropdown
-        const positionsResponse = await playerService.getPositions();
-        appState.positions = positionsResponse.positions || positionsResponse;
-        renderPositionDropdown(appState.positions);
+        renderPositionDropdown();
 
         // Load teams for dropdown
         const teamsResponse = await playerService.getTeams();
         appState.teams = teamsResponse.teams || teamsResponse;
         renderTeamDropdown(appState.teams);
 
-        // Set default filter to most recent year
-        const mostRecentYear = Math.max(...uniqueYears);
-        appState.updateFilter('year', mostRecentYear);
-        
-        // Update year dropdown to show selected year
-        const yearSelect = document.getElementById('year-filter');
-        if (yearSelect) {
-            yearSelect.value = mostRecentYear;
-        }
+        // Set default to most recent year (dropdown stays on All Years)
+        defaultYear = Math.max(...uniqueYears);
+        applyDefaultYearView();
 
         // Render players with default year filter
         renderPlayerCards(appState.filteredPlayers);
@@ -560,6 +745,7 @@ function debounce(func, delay) {
 
 // Filter event handlers
 function handleYearFilter(year) {
+    useDefaultYearView = false;
     appState.updateFilter('year', year || null);
     renderPlayers();
 }
@@ -582,21 +768,21 @@ function handleSearch(searchTerm) {
 // Debounced search handler
 const debouncedSearch = debounce(handleSearch, 300);
 
-// Clear all filters
+// Clear all filters — reset to default year view (2025 data, All Years label)
 function clearAllFilters() {
-    appState.clearFilters();
-    
-    // Reset form inputs
-    const yearSelect = document.getElementById('year-filter');
+    appState.filters.position = null;
+    appState.filters.team = null;
+    appState.filters.search = '';
+
     const positionSelect = document.getElementById('position-filter');
     const teamSelect = document.getElementById('team-filter');
     const searchInput = document.getElementById('search-input');
-    
-    if (yearSelect) yearSelect.value = '';
+
     if (positionSelect) positionSelect.value = '';
     if (teamSelect) teamSelect.value = '';
     if (searchInput) searchInput.value = '';
-    
+
+    applyDefaultYearView();
     renderPlayers();
 }
 
@@ -652,12 +838,6 @@ function setupEventListeners() {
     const clearButton = document.getElementById('clear-filters-btn');
     if (clearButton) {
         clearButton.addEventListener('click', clearAllFilters);
-    }
-
-    // Retry button
-    const retryButton = document.getElementById('retry-btn');
-    if (retryButton) {
-        retryButton.addEventListener('click', retryLoading);
     }
 }
 

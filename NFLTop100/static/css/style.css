@@ -268,6 +268,16 @@ a.btn {
     letter-spacing: 0.5px;
 }
 
+.badge.mvp-badge {
+    background-color: #b8860b;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.badge.year-badge.mvp-badge {
+    background: linear-gradient(135deg, #7d3c98 0%, #b8860b 100%);
+}
+
 .player-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
