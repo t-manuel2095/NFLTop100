@@ -367,13 +367,13 @@ function getPrimaryStats(player) {
         //Offense
         'QB': [
             { label: 'TD/INT/Yds', value: `${player.td ?? 0}/${player.passing_int ?? 0}/${player.yds ?? 0}` },
-            { label: 'Pass: Comp/Att', value: `${player.cmp ?? 0}/${player.att ?? 0}` }, 
+            { label: 'Pass: Comp/Att/%', value: `${player.cmp ?? 0}/${player.att ?? 0}/${(player.cmp / player.att * 100).toFixed(1)}%` }, 
             { label: 'Rush: Yds/Att', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}` },
             { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
         ],
         'RB': [
-            { label: 'Rush: Yds/Att', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}` },
-            { label: 'Receiving: Yds/Att', value: `${player.yds3 ?? 0}/${player.rec ?? 0}` },
+            { label: 'Rush: Yds/Att/YPC', value: `${player.yds2 ?? 0}/${player.att2 ?? 0}/${(player.yds2 / player.att2 ).toFixed(1)}` },
+            { label: 'Receiving: Yds/Att/YPR', value: `${player.yds3 ?? 0}/${player.rec ?? 0}/${(player.yds3 / player.rec ).toFixed(1)}` },
             { label: 'Games Started', value: player.gs || 0 },
             { label: 'Games Played', value: player.g || 0 }
         ],
@@ -403,9 +403,9 @@ function getPrimaryStats(player) {
             { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
         ],
         'DB': [
-            { label: 'Sacks', value: player.sk || 0 },
-            { label: 'Solo Tackles', value: player.solo || 0 },
             { label: 'Interceptions', value: player.int2 || 0 },
+            { label: 'Solo Tackles', value: player.solo || 0 },
+            { label: 'Sacks', value: player.sk || 0 },
             { label: 'Games: Played/Started', value: `${player.g ?? 0}/${player.gs ?? 0}` }
         ],
         //Special Teams
