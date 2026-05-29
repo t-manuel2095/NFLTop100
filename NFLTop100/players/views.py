@@ -38,6 +38,24 @@ class PlayerViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(results, many=True)
         return Response(serializer.data)
 
+    def _resolve_player_image_dir(self, player_name, year):
+        """Find image folder; try DB name and common filesystem variants (e.g. Jr. vs Jr)."""
+        base = os.path.join(settings.BASE_DIR, 'static', 'images')
+        candidates = [
+            player_name,
+            player_name.rstrip('.'),
+            player_name.replace(' Jr.', ' Jr'),
+        ]
+        seen = set()
+        for name in candidates:
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            images_dir = os.path.join(base, name, str(year))
+            if os.path.isdir(images_dir):
+                return images_dir, name
+        return None, None
+
     @action(detail=False, methods=['get'])
     def image(self, request):
         player_name = request.query_params.get('player', '')
@@ -46,16 +64,15 @@ class PlayerViewSet(viewsets.ModelViewSet):
         if not player_name or not year:
             return Response({'error': 'player and year parameters required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Construct the directory path
-        images_dir = os.path.join(settings.BASE_DIR, 'static', 'images', player_name, str(year))
-        
         try:
-            if os.path.exists(images_dir):
-                files = os.listdir(images_dir)
-                # Return the first image file found
-                for file in files:
+            images_dir, folder_name = self._resolve_player_image_dir(player_name, year)
+            if images_dir:
+                for file in os.listdir(images_dir):
                     if file.lower().endswith(('.webp', '.jpg', '.jpeg', '.avif', '.png')):
-                        return Response({'filename': file}, status=status.HTTP_200_OK)
+                        return Response({
+                            'filename': file,
+                            'folder': folder_name,
+                        }, status=status.HTTP_200_OK)
             
             return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

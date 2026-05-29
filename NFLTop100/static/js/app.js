@@ -348,15 +348,13 @@ function createPlayerCard(player) {
     card.innerHTML = `
         <div class="player-card-container" style="background-color: ${teamColor}; color: ${textColor};">
             <img 
-                src="" 
                 alt="${displayName}" 
                 class="player-card-image"
-                onerror="this.src='/static/images/placeholder.jpg'"
             >
             <div class="player-card-content">
                 <div class="player-rank">RANK #${player.rank}</div>
                 <div class="player-name-container">
-                    <h2 class="player-name">${displayName}</h2>
+                    <h2 class="player-name">${displayName} ${wikiLink}</h2>
                 </div>
                 ${yearLabel}
                 <div class="player-badges">
@@ -374,16 +372,23 @@ function createPlayerCard(player) {
     // Load the correct image filename via API
     const playerName = encodeURIComponent(player.player);
     const year = player.year || 2025;
+    const img = card.querySelector('.player-card-image');
     fetch(`/api/players/image/?player=${playerName}&year=${year}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) return null;
+            return response.json();
+        })
         .then(data => {
-            if (data.filename) {
-                const img = card.querySelector('.player-card-image');
-                img.src = `/static/images/${playerName}/${year}/${data.filename}`;
-            }
+            if (!data?.filename) return;
+            const folder = encodeURIComponent(data.folder || player.player);
+            img.src = `/static/images/${folder}/${year}/${encodeURIComponent(data.filename)}`;
+            img.onerror = () => {
+                img.onerror = null;
+                img.removeAttribute('src');
+            };
         })
         .catch(() => {
-            // Image not found, placeholder will show
+            // No image — gray background from CSS remains visible
         });
     
     return card;

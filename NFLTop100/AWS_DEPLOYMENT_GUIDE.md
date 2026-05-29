@@ -421,21 +421,58 @@ Reattach: `screen -r nfl`
 
 ## Updating the Site Later
 
+Two paths: **code/static** (git) or **player data** (`db.sqlite3` via SCP). `git pull` does **not** update the database.
+
+---
+
 ### Code or images (git)
 
-1. On PC: commit and `git push`
-2. On EC2:
+Use when you change Python, `app.js`, `style.css`, or files under `static/images/`.
+
+1. **On PC:** commit and `git push`
+2. **On EC2:**
    - `cd ~/NFLTop100 && git pull origin main`
    - `cd NFLTop100 && source venv/bin/activate`
    - `pip install -r requirements.txt` (if dependencies changed)
    - `python manage.py collectstatic --noinput`
-   - Restart screen or `sudo systemctl restart nfl-top100`
+   - Restart (see below)
+
+**Restart — if using screen:**
+
+```bash
+sudo fuser -k 8000/tcp
+screen -X -S nfl quit 2>/dev/null
+screen -dmS nfl bash -c 'cd ~/NFLTop100/NFLTop100 && source venv/bin/activate && python manage.py runserver 0.0.0.0:8000'
+```
+
+**Restart — if using systemd + Gunicorn:**
+
+```bash
+sudo systemctl restart nfl-top100
+```
+
+**After deploy:** hard refresh in the browser (**Ctrl+F5**) so cached `app.js` updates.
+
+**Do not commit:** `.env`, `db.sqlite3`, `players_fixture.json`.
+
+**If you added Django migrations:** run `python manage.py migrate` on EC2 after pull.
+
+---
 
 ### Player data (still maintained in MSSQL locally)
 
-1. Re-run Part B export on your PC (new `db.sqlite3`)
-2. `scp` the new file to EC2 (overwrite old `db.sqlite3`)
-3. Restart Gunicorn / runserver
+Use when player rows change in MSSQL and production needs the new data.
+
+1. **On PC:** Re-run [Part B](#part-b--build-the-sqlite-database-on-your-pc) (export from MSSQL → load into `db.sqlite3`)
+2. **Copy to EC2** (PowerShell — quote paths with spaces):
+
+```powershell
+scp -i "C:\Users\Manuel\AWS Keys\NFLTop100.pem" `
+  "C:\Users\Manuel\source\repos\NFLTop100\NFLTop100\db.sqlite3" `
+  ubuntu@YOUR_PUBLIC_IP:~/NFLTop100/NFLTop100/db.sqlite3
+```
+
+3. **On EC2:** Confirm file exists (`ls -la ~/NFLTop100/NFLTop100/db.sqlite3`), then restart screen or Gunicorn (same commands as above). No `collectstatic` needed.
 
 Do **not** rely on git for `db.sqlite3` (it is gitignored).
 
