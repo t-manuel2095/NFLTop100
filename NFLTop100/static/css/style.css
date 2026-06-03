@@ -317,6 +317,34 @@ a.btn {
     letter-spacing: 0.5px;
 }
 
+.badge.injured-badge {
+    background-color: #c0392b;
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.badge.suspended-badge {
+    background-color: #000000;
+    color: #f50101;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.badge.retired-badge {
+    background-color: #000000;
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.badge.dnp-badge {
+    background-color: #000000;
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
 .badge.year-badge.mvp-badge {
     background: linear-gradient(135deg, #7d3c98 0%, #b8860b 100%);
 }

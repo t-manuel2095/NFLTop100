@@ -87,50 +87,10 @@ class AppState {
         
         this.positions = [];
         this.teams = [];
-        this.playerLookup = new Map();
-    }
-
-    buildPlayerLookup() {
-        this.playerLookup = new Map();
-        for (const p of this.allPlayers) {
-            this.playerLookup.set(`${p.player}|${p.year}`, p);
-        }
-    }
-
-    getStatsYear(filterYear) {
-        const year = parseInt(filterYear, 10);
-        return isNaN(year) ? filterYear : year - 1;
-    }
-
-    mergeRankWithStatsYear(rankPlayer, statsYear) {
-        const statsPlayer = this.playerLookup.get(`${rankPlayer.player}|${statsYear}`);
-        if (!statsPlayer) {
-            return { ...rankPlayer };
-        }
-        return {
-            ...statsPlayer,
-            rank: rankPlayer.rank,
-            year: rankPlayer.year,
-        };
-    }
-
-    mergePlayerWithPriorYear(player) {
-        return this.mergeRankWithStatsYear(player, this.getStatsYear(player.year));
-    }
-
-    shouldApplyYearMerge() {
-        return Boolean(
-            this.filters.year ||
-            (this.filters.search && this.filters.search.trim()) ||
-            this.filters.position ||
-            this.filters.team ||
-            this.filters.rank !== null
-        );
     }
 
     setAllPlayers(players) {
         this.allPlayers = players;
-        this.buildPlayerLookup();
         this.applyFilters();
     }
 
@@ -169,15 +129,11 @@ class AppState {
             );
         }
         
-        if (this.shouldApplyYearMerge()) {
-            results = results.map(p => this.mergePlayerWithPriorYear(p));
-        }
-        
         if (positionActive) {
             results = results.filter(p => playerMatchesPositionFilter(p, this.filters.position));
         }
         if (teamActive) {
-            results = results.filter(p => p.tm === this.filters.team);
+            results = results.filter(p => getTeamBadgeAbbr(p.tm) === this.filters.team);
         }
         if (rankActive) {
             results = results.filter(p => p.rank === parseInt(this.filters.rank, 10));
@@ -199,6 +155,10 @@ class AppState {
 }
 
 // Helper Functions
+function fmtStat(val) {
+    return val === null || val === undefined ? '-' : val;
+}
+
 function getPlayerImageUrl(player) {
     // Images are stored in: /static/images/{player_name}/{year}/
     // Return the directory path, and the image tag will handle finding the actual file
@@ -226,40 +186,59 @@ function getPositionBadgeColor(position) {
     return positionColors[position] || '#95a5a6';
 }
 
-// Team colors mapping
+// DB / legacy abbreviations → standard badge abbreviations
+const teamAbbrToDisplay = {
+    GNB: 'GB',
+    NWE: 'NE',
+    KAN: 'KC',
+    NOR: 'NO',
+    SFO: 'SF',
+    TAM: 'TB',
+    LVR: 'LV',
+    OAK: 'LV',
+    SDG: 'LAC',
+    STL: 'LAR',
+};
+
+function getTeamBadgeAbbr(tm) {
+    if (!tm) return tm;
+    return teamAbbrToDisplay[tm] || tm;
+}
+
+// Team colors (standard abbreviations) - Assigned the colors based on the team's primary color from Wikipedia
 const teamColors = {
-    'ARI': '#97233F',  // Arizona Cardinals - Cardinal Red
-    'ATL': '#000000',  // Atlanta Falcons - Black
-    'BAL': '#241773',  // Baltimore Ravens - Purple
-    'BUF': '#00338D',  // Buffalo Bills - Royal Blue
-    'CAR': '#0085CA',  // Carolina Panthers - Panther Blue
-    'CHI': '#0B162A',  // Chicago Bears - Navy
-    'CIN': '#FB4F14',  // Cincinnati Bengals - Orange
-    'CLE': '#311D00',  // Cleveland Browns - Brown
-    'DAL': '#003594',  // Dallas Cowboys - Navy
-    'DEN': '#FB4F14',  // Denver Broncos - Orange
-    'DET': '#0076B6',  // Detroit Lions - Honolulu Blue
-    'GNB': '#203731',  // Green Bay Packers - Green
-    'HOU': '#03202F',  // Houston Texans - Navy
-    'IND': '#002C5F',  // Indianapolis Colts - Royal Blue
-    'JAX': '#006687',  // Jacksonville Jaguars - Teal
-    'KAN': '#E31828',  // Kansas City Chiefs - Red
-    'LVR': '#000000',  // Las Vegas Raiders - Black
-    'LAC': '#0080D4',  // Los Angeles Chargers - Powder Blue
-    'LAR': '#003594',  // Los Angeles Rams - Royal Blue
-    'MIA': '#00A3E0',  // Miami Dolphins - Aqua
-    'MIN': '#4F2683',  // Minnesota Vikings - Purple
-    'NWE': '#002244',  // New England Patriots - Navy
-    'NOR': '#D3BC8D',  // New Orleans Saints - Old Gold
-    'NYG': '#0B3278',  // New York Giants - Blue
-    'NYJ': '#125740',  // New York Jets - Green
-    'PHI': '#004953',  // Philadelphia Eagles - Midnight Green
-    'PIT': '#27251F',  // Pittsburgh Steelers - Black
-    'SFO': '#AA0000',  // San Francisco 49ers - Red
-    'SEA': '#0C2C56',  // Seattle Seahawks - Navy
-    'TAM': '#D50A0A',  // Tampa Bay Buccaneers - Red
-    'TEN': '#0C2C56',  // Tennessee Titans - Navy
-    'WAS': '#5A1930'   // Washington Commanders - Burgundy
+    'ARI': '#97233F',
+    'ATL': '#000000',
+    'BAL': '#241773',
+    'BUF': '#00338D',
+    'CAR': '#0085CA',
+    'CHI': '#0B162A',
+    'CIN': '#FB4F14',
+    'CLE': '#311D00',
+    'DAL': '#003594',
+    'DEN': '#FB4F14',
+    'DET': '#0076B6',
+    'GB': '#203731',
+    'HOU': '#03202F',
+    'IND': '#002C5F',
+    'JAX': '#006687',
+    'KC': '#E31828',
+    'LV': '#000000',
+    'LAC': '#0080D4',
+    'LAR': '#003594',
+    'MIA': '#00A3E0',
+    'MIN': '#4F2683',
+    'NE': '#002244',
+    'NO': '#D3BC8D',
+    'NYG': '#0B3278',
+    'NYJ': '#125740',
+    'PHI': '#004953',
+    'PIT': '#27251F',
+    'SF': '#AA0000',
+    'SEA': '#0C2C56',
+    'TB': '#D50A0A',
+    'TEN': '#0C2C56',
+    'WAS': '#5A1930',
 };
 
 const teamNames = {
@@ -274,18 +253,23 @@ const teamNames = {
     'DAL': 'Cowboys',
     'DEN': 'Broncos',
     'DET': 'Lions',
+    'GB': 'Packers',
     'GNB': 'Packers',
     'HOU': 'Texans',
     'IND': 'Colts',
     'JAX': 'Jaguars',
+    'KC': 'Chiefs',
     'KAN': 'Chiefs',
     'LAC': 'Chargers',
     'LAR': 'Rams',
+    'LV': 'Raiders',
     'LVR': 'Raiders',
     'MIA': 'Dolphins',
     'MIN': 'Vikings',
-    'NOR': 'Saints',
+    'NE': 'Patriots',
     'NWE': 'Patriots',
+    'NO': 'Saints',
+    'NOR': 'Saints',
     'NYG': 'Giants',
     'NYJ': 'Jets',
     'OAK': 'Raiders',
@@ -293,8 +277,10 @@ const teamNames = {
     'PIT': 'Steelers',
     'SDG': 'Chargers',
     'SEA': 'Seahawks',
+    'SF': '49ers',
     'SFO': '49ers',
     'STL': 'Rams',
+    'TB': 'Buccaneers',
     'TAM': 'Buccaneers',
     'TEN': 'Titans',
     'WAS': 'Commanders',
@@ -308,7 +294,7 @@ function getTeamColor(teamAbbr) {
     if (!teamAbbr || teamAbbr === null || teamAbbr === '') {
         return '#FFFFFF';
     }
-    return teamColors[teamAbbr] || '#000000';
+    return teamColors[getTeamBadgeAbbr(teamAbbr)] || '#000000';
 }
 
 function getTextColor(bgColor) {
@@ -495,6 +481,58 @@ function isPlayerMvpForYear(player) {
     return Boolean(mvp && player.player === mvp);
 }
 
+const injuredPlayers = {
+    'Peyton Manning|2011': true,
+    'Robert Mathis|2014': true,
+    'NaVorro Bowman|2014': true,
+    'Kiko Alonso|2014': true,
+    'Jordy Nelson|2015': true,
+    'Maurkice Pouncey|2015': true,
+    'Andrew Luck|2017': true,
+    'Julian Edelman|2017': true,
+    "Le'Veon Bell|2018": true,
+    'Ryan Shazier|2018': true,
+    'A.J. Green|2019': true,
+    'Trent Williams|2019': true,
+    'Von Miller|2020': true,
+    'Danielle Hunter|2020': true,
+    'Brandon Brooks|2020': true,
+    'Michael Thomas|2021': true,
+    'Odell Beckham Jr.|2022': true,
+    'Joe Mixon|2025': true,
+};
+
+function isPlayerInjured(player) {
+    return Boolean(injuredPlayers[`${player.player}|${player.year}`]);
+}
+
+const suspendedPlayers = {
+    'Daryl Washington|2014': true, 
+};
+
+function isPlayerSuspended(player) {
+    return Boolean(suspendedPlayers[`${player.player}|${player.year}`]);
+}
+
+const retiredPlayers = {
+    'Kam Chancellor|2018': true,
+    'Andrew Luck|2019': true,
+
+}
+
+function isPlayerRetired(player) {
+    return Boolean(retiredPlayers[`${player.player}|${player.year}`]);
+}
+
+const DNPPlayers = {
+    'Deshaun Watson|2021': true,
+
+}
+
+function isPlayerDNP(player) {
+    return Boolean(DNPPlayers[`${player.player}|${player.year}`]);
+}
+
 function getYearBadgeHtml(player) {
     const showYear = shouldShowYearOnCard(player);
     const isMvp = isPlayerMvpForYear(player);
@@ -505,6 +543,18 @@ function getYearBadgeHtml(player) {
     }
     if (isMvp) {
         parts.push(`<span class="badge mvp-badge">MVP 🏆</span>`);
+    }
+    if (isPlayerInjured(player)) {
+        parts.push(`<span class="badge injured-badge" title="Injured">✚ Injured</span>`);
+    }
+    if (isPlayerSuspended(player)) {
+        parts.push(`<span class="badge suspended-badge" title="Suspended">X Suspended</span>`);
+    }
+    if (isPlayerRetired(player)) {
+        parts.push(`<span class="badge retired-badge" title="Retired">✌️ Retired</span>`);
+    }
+    if (isPlayerDNP(player)) {
+        parts.push(`<span class="badge dnp-badge" title="DNP">DNP</span>`);
     }
     return parts.join('');
 }
@@ -588,7 +638,7 @@ function createPlayerCard(player) {
                 </div>
                 <div class="player-badges">
                     <span class="badge pos-${player.pos}" style="background-color: ${badgeColor};">${player.pos}</span>
-                    <span class="badge team-badge">${player.tm || 'Free agent'}</span>
+                    <span class="badge team-badge">${getTeamBadgeAbbr(player.tm) || 'Free agent'}</span>
                     ${yearBadge}
                 </div>
                 <div class="player-stats">
@@ -701,9 +751,16 @@ function renderTeamDropdown(teams) {
     
     select.innerHTML = '<option value="">All Teams</option>';
     
-    const sortedTeams = [...teams]
-        .filter(team => team)
-        .map(abbr => ({ abbr, name: getTeamDisplayName(abbr) }))
+    const byCanonical = new Map();
+    for (const abbr of teams) {
+        if (!abbr) continue;
+        const key = getTeamBadgeAbbr(abbr);
+        if (!byCanonical.has(key)) {
+            byCanonical.set(key, getTeamDisplayName(abbr));
+        }
+    }
+    const sortedTeams = [...byCanonical.entries()]
+        .map(([abbr, name]) => ({ abbr, name }))
         .sort((a, b) => a.name.localeCompare(b.name));
     
     sortedTeams.forEach(({ abbr, name }) => {

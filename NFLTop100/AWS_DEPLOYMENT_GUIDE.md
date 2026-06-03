@@ -545,7 +545,8 @@ Optional: Route 53 domain ~$12/year
 |-------|--------|
 | **Now** | Part A code changes → Part B SQLite file → Part C/D AWS deploy |
 | **Hardening** | `DEBUG=False`, WhiteNoise, Nginx on port 80, HTTPS (Let’s Encrypt) |
-| **Optional** | Custom domain (Route 53), S3/CloudFront for images if repo size hurts deploys |
+| **Custom domain** | [CUSTOM_DOMAIN_GUIDE.md](./CUSTOM_DOMAIN_GUIDE.md) — DNS, Nginx, Gunicorn, HTTPS (no Elastic IP) |
+| **Optional** | Elastic IP for stable DNS, S3/CloudFront for images if repo size hurts deploys |
 | **Not needed for 24/7** | RDS SQL Server (only if you return to cloud MSSQL as source of truth) |
 
 ---
