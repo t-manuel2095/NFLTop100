@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -155,6 +156,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # For production
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),  # Your development static folder
 ]
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
